@@ -152,8 +152,15 @@ int32_t example_main_lsm6ds3(int handle)
   /* Wait sensor boot time */
   platform_delay(BOOT_TIME);
   /* Check device ID */
-  lsm6ds3_device_id_get(&dev_ctx, &whoamI);
-  printf("ID: %02X \n", whoamI);
+  uint32_t i=0;
+  do
+  {
+    platform_delay(50);
+    lsm6ds3_device_id_get(&dev_ctx, &whoamI);
+    i++;
+  } while( (whoamI != LSM6DS3_ID) && i<3);
+  
+  printf("ID: %02X [%d]\n", whoamI, i);
 
   if (whoamI != LSM6DS3_ID)
   {
@@ -282,6 +289,9 @@ static int32_t platform_write(void *handle, uint8_t reg,
   
   xfer.tx_buf=(unsigned long)tx_buf;
   xfer.len=len+1;
+  xfer.speed_hz = 5000000;
+  xfer.bits_per_word = 8;
+  xfer.cs_change = 0;
   
   if(ioctl(handle, SPI_IOC_MESSAGE(1), &xfer) < 0)
   {
